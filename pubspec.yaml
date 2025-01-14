@@ -1,11 +1,13 @@
 name: qr_track
 description: "A new Flutter FFI plugin project."
 version: 0.0.1
-homepage:
+
+homepage: https://github.com/Miracle-Blue/qr_track
+issue_tracker: https://github.com/Miracle-Blue/qr_track/issues
 
 environment:
   sdk: ^3.6.0
-  flutter: '>=3.3.0'
+  flutter: ">=3.3.0"
 
 dependencies:
   flutter:
