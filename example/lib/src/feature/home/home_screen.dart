@@ -1,5 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:qr_track/qr_track.dart' as qr;
+import 'package:flutter/services.dart';
+import 'package:qr_track/qr_track.dart';
+
+import '../../common/util/logger.dart';
 
 /// {@template home_screen}
 /// HomeScreen widget.
@@ -16,20 +21,26 @@ class HomeScreen extends StatefulWidget {
 
 /// State for widget HomeScreen.
 class _HomeScreenState extends State<HomeScreen> {
-  late int sumResult;
-  late Future<int> sumAsyncResult;
+  double? ratio;
 
   /* #region Lifecycle */
   @override
   void initState() {
     super.initState();
-
-    sumResult = qr.sum(1, 2);
-    sumAsyncResult = qr.sumAsync(3, 4);
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
   }
 
   @override
   void dispose() {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeRight,
+      DeviceOrientation.landscapeLeft,
+    ]);
     super.dispose();
   }
   /* #endregion */
@@ -39,37 +50,22 @@ class _HomeScreenState extends State<HomeScreen> {
         appBar: AppBar(
           title: const Text('Native Packages'),
         ),
-        body: SingleChildScrollView(
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              children: [
-                const Text(
-                  'This calls a native function through FFI that is shipped as source in the package. '
-                  'The native code is built as part of the Flutter Runner build.',
-                  style: TextStyle(fontSize: 25),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'sum(1, 2) = $sumResult',
-                  style: const TextStyle(fontSize: 25),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 10),
-                FutureBuilder<int>(
-                  future: sumAsyncResult,
-                  builder: (context, value) {
-                    final displayValue = (value.hasData) ? value.data : 'loading';
-                    return Text(
-                      'await sumAsync(3, 4) = $displayValue',
-                      style: const TextStyle(fontSize: 25),
-                      textAlign: TextAlign.center,
-                    );
-                  },
-                ),
-              ],
-            ),
+        body: AspectRatio(
+          aspectRatio: ratio ?? 9 / 16,
+          child: QrView(
+            onControllerCreated: (controller, exception) async {
+              fine(controller);
+              fine(exception);
+
+              if (Platform.isAndroid) {
+                info('Locking orientation to portraitUp');
+                await controller?.lockCaptureOrientation(DeviceOrientation.portraitUp);
+              }
+
+              ratio = controller?.value.aspectRatio ?? 0.0;
+              setState(() {});
+            },
+            onScan: info,
           ),
         ),
       );
